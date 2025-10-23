@@ -6,7 +6,35 @@
       "path": "ideas/idea-0001.md",
       "tags": [],
       "title": "Add lint command"
+    },
+    {
+      "created": {},
+      "id": "IDEA-0002",
+      "path": "ideas/idea-0002.md",
+      "tags": [],
+      "title": "Add test framework integration"
+    },
+    {
+      "created": {},
+      "id": "IDEA-0003",
+      "path": "ideas/idea-0003.md",
+      "tags": [],
+      "title": "Add docs generation"
+    },
+    {
+      "created": {},
+      "id": "IDEA-0004",
+      "path": "ideas/idea-0004.md",
+      "tags": [],
+      "title": "Add bundle/pack command"
+    },
+    {
+      "created": {},
+      "id": "IDEA-0005",
+      "path": "ideas/idea-0005.md",
+      "tags": [],
+      "title": "Add server utility"
     }
   ],
-  "timestamp": "2025-10-23T19:28:32.245Z"
+  "timestamp": "2025-10-23T19:38:56.534Z"
 }
