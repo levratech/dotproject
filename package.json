@@ -12,11 +12,13 @@
     "start": "node bin/cli.js"
   },
   "dependencies": {
-    "commander": "^11.0.0",
+    "ajv": "^8.17.1",
     "chalk": "^5.0.0",
+    "commander": "^11.0.0",
     "fs-extra": "^11.0.0",
+    "globby": "^14.0.0",
     "inquirer": "^9.0.0",
-    "globby": "^14.0.0"
+    "gray-matter": "^4.0.3"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -14,15 +14,21 @@
     },
     {
       "path": "package.json",
-      "size": 535,
-      "sha1": "8ed7bdae6ddff505f88c991d246b87bc151d5984",
-      "lines": 26
+      "size": 586,
+      "sha1": "722c43c2b1292819d4cab140a64816e570084987",
+      "lines": 28
     },
     {
       "path": "bin/cli.js",
-      "size": 787,
-      "sha1": "52a3161065a3ef11b24faa1670012dba01fa023c",
-      "lines": 38
+      "size": 1623,
+      "sha1": "805bd4a634cde2c716a0a555b1839de8fdf08459",
+      "lines": 72
+    },
+    {
+      "path": "schemas/idea.json",
+      "size": 715,
+      "sha1": "231ad06ae964ed16dc6b9b76b61f218ccf9734cd",
+      "lines": 32
     },
     {
       "path": "schemas/story.json",
@@ -43,10 +49,34 @@
       "lines": 132
     },
     {
+      "path": "src/commands/canonicalize.js",
+      "size": 963,
+      "sha1": "e0646dc68b0f4f9039e02b0a8a94bc43f95c6be4",
+      "lines": 31
+    },
+    {
+      "path": "src/commands/docs-index.js",
+      "size": 2220,
+      "sha1": "3b6d8871186e75a6a79553e93888893e2a035ce4",
+      "lines": 74
+    },
+    {
+      "path": "src/commands/idea.js",
+      "size": 3563,
+      "sha1": "fc0f5f02b6123825ed8839074ffcaac899d6d583",
+      "lines": 147
+    },
+    {
       "path": "src/commands/init.js",
       "size": 973,
       "sha1": "17d176540fc7e5f628a6600b68c7b7e3550d5574",
       "lines": 31
+    },
+    {
+      "path": "src/commands/story-index.js",
+      "size": 1824,
+      "sha1": "4faf815537c3a2117fc49f7c51a0d412aaa075ac",
+      "lines": 64
     },
     {
       "path": "src/commands/story-new.js",
@@ -55,12 +85,24 @@
       "lines": 49
     },
     {
+      "path": "src/commands/validate.js",
+      "size": 1549,
+      "sha1": "d1ed8eadfb5722a7e43cfeb0b91bde6fac010b67",
+      "lines": 52
+    },
+    {
       "path": "src/utils/findProjectRoot.js",
       "size": 713,
       "sha1": "b68209063fc8f5ab057f0d5ee2da6d418b89711c",
       "lines": 24
+    },
+    {
+      "path": "src/utils/jsonUtils.js",
+      "size": 378,
+      "sha1": "9ff03b40b4fe2060042354e2c15ffc4171745a10",
+      "lines": 16
     }
   ],
-  "totalFiles": 10,
-  "timestamp": "2025-10-23T17:57:54.280Z"
+  "totalFiles": 17,
+  "timestamp": "2025-10-23T19:29:08.701Z"
 }

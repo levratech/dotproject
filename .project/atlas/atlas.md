@@ -74,11 +74,13 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
     "start": "node bin/cli.js"
   },
   "dependencies": {
-    "commander": "^11.0.0",
+    "ajv": "^8.17.1",
     "chalk": "^5.0.0",
+    "commander": "^11.0.0",
     "fs-extra": "^11.0.0",
+    "globby": "^14.0.0",
     "inquirer": "^9.0.0",
-    "globby": "^14.0.0"
+    "gray-matter": "^4.0.3"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -96,6 +98,11 @@ import { Command } from 'commander';
 import init from '../src/commands/init.js';
 import storyNew from '../src/commands/story-new.js';
 import atlasBuild from '../src/commands/atlas-build.js';
+import validate from '../src/commands/validate.js';
+import storyIndex from '../src/commands/story-index.js';
+import canonicalize from '../src/commands/canonicalize.js';
+import idea from '../src/commands/idea.js';
+import docsIndex from '../src/commands/docs-index.js';
 
 const program = new Command();
 
@@ -118,6 +125,11 @@ storyCmd
   .description('Create new story')
   .action(storyNew);
 
+storyCmd
+  .command('index')
+  .description('Index stories and epics')
+  .action(storyIndex);
+
 const atlasCmd = program
   .command('atlas')
   .description('Atlas commands');
@@ -127,7 +139,67 @@ atlasCmd
   .description('Build project atlas')
   .action(atlasBuild);
 
+program
+  .command('validate')
+  .description('Validate JSON files against schemas')
+  .action(validate);
+
+program
+  .command('canonicalize')
+  .description('Canonicalize JSON files')
+  .action(canonicalize);
+
+program
+  .command('idea <action> [arg]')
+  .description('Manage .project ideas')
+  .action(idea);
+
+const docsCmd = program
+  .command('docs')
+  .description('Docs commands');
+
+docsCmd
+  .command('index')
+  .description('Build docs index')
+  .action(docsIndex);
+
 program.parse();
+```
+
+--- FILE: schemas/idea.json
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique idea identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Idea title"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creation timestamp"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "open", "closed"],
+      "description": "Idea status"
+    }
+  },
+  "required": ["id", "title", "tags", "created", "status"]
+}
 ```
 
 --- FILE: schemas/story.json
@@ -313,6 +385,270 @@ async function writeIndex(atlasDir, metadata) {
 }
 ```
 
+--- FILE: src/commands/canonicalize.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import { globby } from 'globby';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+import { sortKeys } from '../utils/jsonUtils.js';
+
+/**
+ * Canonicalize JSON files in .project/.
+ */
+export default async function canonicalize() {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a git repository or .project folder not found.'));
+    process.exit(1);
+  }
+
+  const projectDir = path.join(root, '.project');
+  const files = await globby('**/*.json', { cwd: projectDir, ignore: ['atlas/**'] });
+
+  let count = 0;
+  for (const file of files) {
+    const filePath = path.join(projectDir, file);
+    const data = await fs.readJson(filePath);
+    const canonical = JSON.stringify(sortKeys(data), null, 2) + '\n';
+    await fs.writeFile(filePath, canonical);
+    count++;
+  }
+
+  console.log(chalk.green(`✅ Canonicalized ${count} files.`));
+}
+```
+
+--- FILE: src/commands/docs-index.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import matter from 'gray-matter';
+import { globby } from 'globby';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+import { sortKeys } from '../utils/jsonUtils.js';
+
+/**
+ * Build docs index from .project/docs/ and .project/ideas/.
+ */
+export default async function docsIndex() {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a git repository or .project folder not found.'));
+    process.exit(1);
+  }
+
+  const projectDir = path.join(root, '.project');
+  const docsDir = path.join(projectDir, 'docs');
+  const ideasDir = path.join(projectDir, 'ideas');
+
+  const docs = [];
+  const ideas = [];
+
+  // Index docs
+  if (await fs.pathExists(docsDir)) {
+    const docFiles = await globby('**/*.md', { cwd: docsDir });
+    for (const file of docFiles) {
+      const filePath = path.join(docsDir, file);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const { data } = matter(content);
+      if (data.id && data.title) {
+        docs.push({
+          id: data.id,
+          title: data.title,
+          tags: data.tags || [],
+          created: data.created,
+          path: path.relative(projectDir, filePath)
+        });
+      }
+    }
+  }
+
+  // Index ideas
+  if (await fs.pathExists(ideasDir)) {
+    const ideaFiles = await globby('**/*.md', { cwd: ideasDir });
+    for (const file of ideaFiles) {
+      const filePath = path.join(ideasDir, file);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const { data } = matter(content);
+      if (data.id && data.title) {
+        ideas.push({
+          id: data.id,
+          title: data.title,
+          tags: data.tags || [],
+          created: data.created,
+          path: path.relative(projectDir, filePath)
+        });
+      }
+    }
+  }
+
+  const indexData = {
+    timestamp: new Date().toISOString(),
+    docs: docs.concat(ideas)
+  };
+
+  const indexPath = path.join(projectDir, 'docs', 'index.json');
+  await fs.ensureDir(path.dirname(indexPath));
+  await fs.writeJson(indexPath, sortKeys(indexData), { spaces: 2 });
+
+  console.log(chalk.green(`✅ Indexed ${ideas.length} ideas and ${docs.length} docs.`));
+}
+```
+
+--- FILE: src/commands/idea.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import matter from 'gray-matter';
+import { globby } from 'globby';
+import { spawn } from 'child_process';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+
+/**
+ * Manage .project ideas.
+ */
+export default async function idea(action, arg) {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a git repository or .project folder not found.'));
+    process.exit(1);
+  }
+
+  const ideasDir = path.join(root, '.project', 'ideas');
+  await fs.ensureDir(ideasDir);
+
+  if (action === 'new') {
+    await ideaNew(ideasDir, arg);
+  } else if (action === 'list') {
+    await ideaList(ideasDir);
+  } else if (action === 'open') {
+    await ideaOpen(ideasDir, arg);
+  } else {
+    console.error(chalk.red('Invalid action. Use new, list, or open.'));
+    process.exit(1);
+  }
+}
+
+/**
+ * Create a new idea.
+ */
+async function ideaNew(ideasDir, title) {
+  if (!title) {
+    console.error(chalk.red('Title is required.'));
+    process.exit(1);
+  }
+
+  const nextId = await getNextIdeaId(ideasDir);
+  const id = `IDEA-${nextId.toString().padStart(4, '0')}`;
+  const fileName = `idea-${nextId.toString().padStart(4, '0')}.md`;
+  const filePath = path.join(ideasDir, fileName);
+
+  const frontMatter = formatFrontMatter({
+    id,
+    title,
+    tags: [],
+    created: new Date().toISOString(),
+    status: 'draft'
+  });
+
+  const content = `${frontMatter}## Summary\n(Add notes here)\n`;
+
+  await fs.writeFile(filePath, content);
+  console.log(chalk.green(`✅ Created idea ${id} at ${filePath}`));
+}
+
+/**
+ * List all ideas.
+ */
+async function ideaList(ideasDir) {
+  const files = await globby('**/*.md', { cwd: ideasDir });
+  const ideas = [];
+
+  for (const file of files) {
+    const filePath = path.join(ideasDir, file);
+    const content = await fs.readFile(filePath, 'utf-8');
+    const { data } = matter(content);
+    if (data.id && data.title) {
+      ideas.push(data);
+    }
+  }
+
+  if (ideas.length === 0) {
+    console.log('No ideas found.');
+    return;
+  }
+
+  console.log('ID\t\tTitle\t\t\tTags\t\tStatus');
+  console.log('─'.repeat(80));
+  ideas.forEach(idea => {
+    console.log(`${idea.id}\t${idea.title}\t\t${idea.tags.join(', ')}\t\t${idea.status}`);
+  });
+}
+
+/**
+ * Open an idea in the default editor.
+ */
+async function ideaOpen(ideasDir, id) {
+  if (!id) {
+    console.error(chalk.red('ID is required.'));
+    process.exit(1);
+  }
+
+  const files = await globby('**/*.md', { cwd: ideasDir });
+  let filePath = null;
+
+  for (const file of files) {
+    const fullPath = path.join(ideasDir, file);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    const { data } = matter(content);
+    if (data.id === id) {
+      filePath = fullPath;
+      break;
+    }
+  }
+
+  if (!filePath) {
+    console.error(chalk.red(`Idea ${id} not found.`));
+    process.exit(1);
+  }
+
+  const openCmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
+  spawn(openCmd, [filePath], { stdio: 'inherit' });
+}
+
+/**
+ * Get the next idea ID.
+ */
+async function getNextIdeaId(ideasDir) {
+  const seqPath = path.join(ideasDir, 'sequence.json');
+  let next = 1;
+  if (await fs.pathExists(seqPath)) {
+    const seq = await fs.readJson(seqPath);
+    next = seq.next;
+  }
+  await fs.writeJson(seqPath, { next: next + 1 });
+  return next;
+}
+
+/**
+ * Format front matter.
+ */
+function formatFrontMatter(data) {
+  return `---
+id: ${data.id}
+title: "${data.title}"
+tags: [${data.tags.map(t => `"${t}"`).join(', ')}]
+created: ${data.created}
+status: ${data.status}
+---
+`;
+}
+```
+
 --- FILE: src/commands/init.js
 ```js
 import fs from 'fs-extra';
@@ -345,6 +681,74 @@ export default async function init() {
 
   await fs.writeJson(path.join(projectDir, 'config.json'), config, { spaces: 2 });
   console.log(chalk.green('Initialized .project folder'));
+}
+```
+
+--- FILE: src/commands/story-index.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import { globby } from 'globby';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+import { sortKeys } from '../utils/jsonUtils.js';
+
+/**
+ * Index stories and epics into .project/index.json.
+ */
+export default async function storyIndex() {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a git repository or .project folder not found.'));
+    process.exit(1);
+  }
+
+  const projectDir = path.join(root, '.project');
+  const storiesDir = path.join(projectDir, 'stories');
+  const epicsDir = path.join(projectDir, 'epics');
+
+  const stories = [];
+  const epics = [];
+
+  // Load stories
+  if (await fs.pathExists(storiesDir)) {
+    const storyFiles = await globby('**/*.json', { cwd: storiesDir });
+    for (const file of storyFiles) {
+      const filePath = path.join(storiesDir, file);
+      const data = await fs.readJson(filePath);
+      stories.push({
+        id: data.id,
+        title: data.title,
+        epic: data.epic,
+        risk: data.risk,
+        status: 'in_progress' // Assuming, or derive from data
+      });
+    }
+  }
+
+  // Load epics
+  if (await fs.pathExists(epicsDir)) {
+    const epicFiles = await globby('**/*.json', { cwd: epicsDir });
+    for (const file of epicFiles) {
+      const filePath = path.join(epicsDir, file);
+      const data = await fs.readJson(filePath);
+      epics.push({
+        id: data.id,
+        title: data.title
+      });
+    }
+  }
+
+  const indexData = {
+    stories,
+    epics,
+    timestamp: new Date().toISOString()
+  };
+
+  const indexPath = path.join(projectDir, 'index.json');
+  await fs.writeJson(indexPath, sortKeys(indexData), { spaces: 2 });
+
+  console.log(chalk.green(`✅ Indexed ${stories.length} stories and ${epics.length} epics.`));
 }
 ```
 
@@ -401,6 +805,62 @@ export default async function storyNew() {
 }
 ```
 
+--- FILE: src/commands/validate.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import Ajv from 'ajv';
+import { globby } from 'globby';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+
+/**
+ * Validate JSON files in .project/ against schemas.
+ */
+export default async function validate() {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a git repository or .project folder not found.'));
+    process.exit(1);
+  }
+
+  const projectDir = path.join(root, '.project');
+  const schemasDir = path.join(root, 'schemas');
+
+  const ajv = new Ajv();
+  const storySchemaPath = path.join(schemasDir, 'story.json');
+  if (!(await fs.pathExists(storySchemaPath))) {
+    console.error(chalk.red('Story schema not found.'));
+    process.exit(1);
+  }
+  const storySchema = await fs.readJson(storySchemaPath);
+  const validateStory = ajv.compile(storySchema);
+
+  const files = await globby('stories/**/*.json', { cwd: projectDir });
+  let validCount = 0;
+  let invalidCount = 0;
+  const errors = [];
+
+  for (const file of files) {
+    const filePath = path.join(projectDir, file);
+    const data = await fs.readJson(filePath);
+    const valid = validateStory(data);
+    if (valid) {
+      validCount++;
+    } else {
+      invalidCount++;
+      errors.push(`${file} (${ajv.errorsText(validateStory.errors)})`);
+    }
+  }
+
+  console.log(chalk.green(`✅ ${validCount} stories valid`));
+  if (invalidCount > 0) {
+    console.log(chalk.red(`❌ ${invalidCount} invalid: ${errors.join(', ')}`));
+    process.exit(1);
+  }
+}
+```
+
 --- FILE: src/utils/findProjectRoot.js
 ```js
 import path from 'path';
@@ -426,6 +886,26 @@ export function findProjectRoot(start = process.cwd()) {
     current = parent;
   }
   return null;
+}
+```
+
+--- FILE: src/utils/jsonUtils.js
+```js
+/**
+ * Utility functions for JSON handling.
+ */
+
+/**
+ * Recursively sort object keys for canonical JSON.
+ */
+export function sortKeys(obj) {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map(sortKeys);
+  const sorted = {};
+  Object.keys(obj).sort().forEach(key => {
+    sorted[key] = sortKeys(obj[key]);
+  });
+  return sorted;
 }
 ```
 
