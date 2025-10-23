@@ -20,9 +20,9 @@
     },
     {
       "path": "bin/cli.js",
-      "size": 2042,
-      "sha1": "a800bcada766137cdbd267e4a73b8b6a3e8075e7",
-      "lines": 82
+      "size": 2590,
+      "sha1": "c801a2d9dcc0f6fad759aed8753fdab2a6020eac",
+      "lines": 106
     },
     {
       "path": "schemas/idea.json",
@@ -110,5 +110,5 @@
     }
   ],
   "totalFiles": 18,
-  "timestamp": "2025-10-23T19:55:55.776Z"
+  "timestamp": "2025-10-23T20:17:48.289Z"
 }

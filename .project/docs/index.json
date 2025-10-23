@@ -4,37 +4,52 @@
       "created": {},
       "id": "IDEA-0001",
       "path": "ideas/idea-0001.md",
-      "tags": [],
-      "title": "Add lint command"
+      "tags": [
+        "testing",
+        "infrastructure"
+      ],
+      "title": "Add automated testing framework"
     },
     {
       "created": {},
       "id": "IDEA-0002",
       "path": "ideas/idea-0002.md",
-      "tags": [],
-      "title": "Add test framework integration"
+      "tags": [
+        "lint",
+        "quality"
+      ],
+      "title": "Add linting and validation rules"
     },
     {
       "created": {},
       "id": "IDEA-0003",
       "path": "ideas/idea-0003.md",
-      "tags": [],
-      "title": "Add docs generation"
+      "tags": [
+        "docs",
+        "generation"
+      ],
+      "title": "Auto-generate documentation from schemas"
     },
     {
       "created": {},
       "id": "IDEA-0004",
       "path": "ideas/idea-0004.md",
-      "tags": [],
-      "title": "Add bundle/pack command"
+      "tags": [
+        "packaging",
+        "distribution"
+      ],
+      "title": "Bundle and compress .project folders"
     },
     {
       "created": {},
       "id": "IDEA-0005",
       "path": "ideas/idea-0005.md",
-      "tags": [],
-      "title": "Add server utility"
+      "tags": [
+        "api",
+        "agents"
+      ],
+      "title": "Expose local API for agent integration"
     }
   ],
-  "timestamp": "2025-10-23T19:38:56.534Z"
+  "timestamp": "2025-10-23T20:17:42.629Z"
 }
