@@ -1,0 +1,26 @@
+{
+  "name": "dotproject",
+  "version": "1.0.0",
+  "description": "A CLI tool to manage project metadata in .project folder",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "dotproject": "bin/cli.js",
+    "dot": "bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "chalk": "^5.0.0",
+    "fs-extra": "^11.0.0",
+    "inquirer": "^9.0.0",
+    "globby": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "levratech",
+  "license": "MIT"
+}

@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "size": 578,
+      "sha1": "daa04c69eb8d0800ea6b5d08674adcbcc0f500f1",
+      "lines": 14
+    },
+    {
+      "path": "README.md",
+      "size": 794,
+      "sha1": "f808a578c453250fbd4decc0fc99443db770873b",
+      "lines": 38
+    },
+    {
+      "path": "package.json",
+      "size": 535,
+      "sha1": "8ed7bdae6ddff505f88c991d246b87bc151d5984",
+      "lines": 26
+    },
+    {
+      "path": "bin/cli.js",
+      "size": 787,
+      "sha1": "52a3161065a3ef11b24faa1670012dba01fa023c",
+      "lines": 38
+    },
+    {
+      "path": "schemas/story.json",
+      "size": 816,
+      "sha1": "39ad454b2a7ead8bdac9c784e10f1a6e85698493",
+      "lines": 37
+    },
+    {
+      "path": "src/index.js",
+      "size": 98,
+      "sha1": "58ffdcf81810cd4542e421479c515b8aac3df5c1",
+      "lines": 2
+    },
+    {
+      "path": "src/commands/atlas-build.js",
+      "size": 3750,
+      "sha1": "efcb794a9990eda95854ea232f73e84e461eb866",
+      "lines": 132
+    },
+    {
+      "path": "src/commands/init.js",
+      "size": 973,
+      "sha1": "17d176540fc7e5f628a6600b68c7b7e3550d5574",
+      "lines": 31
+    },
+    {
+      "path": "src/commands/story-new.js",
+      "size": 1506,
+      "sha1": "80b0af8d2a5a4f0ce8db89afb95eb4895cab0432",
+      "lines": 49
+    },
+    {
+      "path": "src/utils/findProjectRoot.js",
+      "size": 713,
+      "sha1": "b68209063fc8f5ab057f0d5ee2da6d418b89711c",
+      "lines": 24
+    }
+  ],
+  "totalFiles": 10,
+  "timestamp": "2025-10-23T17:57:54.280Z"
+}
