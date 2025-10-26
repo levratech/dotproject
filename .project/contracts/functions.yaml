@@ -1,0 +1,26 @@
+version: 0.1
+functions:
+  - id: dot.canonicalize
+    layer: data
+    description: Recursively sort keys and rewrite JSON files in canonical form.
+    side_effects: [ "rewrites .project/**/*.json" ]
+    inputs: []
+    outputs: [ "canonicalized files" ]
+
+  - id: dot.story.index
+    layer: domain
+    description: Build .project/index.json from stories and epics.
+    depends_on: [ dot.canonicalize ]
+    outputs: [ ".project/index.json" ]
+
+  - id: dot.docs.index
+    layer: domain
+    description: Index all docs and ideas.
+    depends_on: [ dot.canonicalize ]
+    outputs: [ ".project/docs/index.json" ]
+
+  - id: dot.atlas.build
+    layer: orchestration
+    description: Aggregate readable codebase content into atlas.md.
+    depends_on: [ dot.docs.index, dot.story.index ]
+    outputs: [ ".project/atlas/atlas.md", ".project/atlas/index.json" ]

@@ -1,0 +1,10 @@
+version: 0.1
+layers:
+  - id: ui
+    name: UI / CLI
+  - id: domain
+    name: Domain Logic
+  - id: data
+    name: Data & Schemas
+  - id: orchestration
+    name: Atlas & Index Generation

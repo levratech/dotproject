@@ -20,15 +20,15 @@
     },
     {
       "path": "package.json",
-      "size": 831,
-      "sha1": "a3ac0ba1f2ba7a89a30374d64ac4825e23d26a9c",
-      "lines": 37
+      "size": 856,
+      "sha1": "7a748ec86a16bd77084301a1f098acf472a05cdd",
+      "lines": 38
     },
     {
       "path": "bin/cli.js",
-      "size": 2962,
-      "sha1": "5bbd5d2e19afa7e2e7f908880461c9af9f3b4bc7",
-      "lines": 118
+      "size": 3379,
+      "sha1": "842fd69fd8d7d2abe4aaa74349782bad226c322b",
+      "lines": 132
     },
     {
       "path": "schemas/idea.json",
@@ -59,6 +59,12 @@
       "size": 963,
       "sha1": "e0646dc68b0f4f9039e02b0a8a94bc43f95c6be4",
       "lines": 31
+    },
+    {
+      "path": "src/commands/contracts.js",
+      "size": 1128,
+      "sha1": "1da013d27d65b9acf93b53baa17e2c2a7c5377ad",
+      "lines": 30
     },
     {
       "path": "src/commands/docs-index.js",
@@ -127,6 +133,6 @@
       "lines": 9
     }
   ],
-  "totalFiles": 21,
-  "timestamp": "2025-10-24T23:35:30.220Z"
+  "totalFiles": 22,
+  "timestamp": "2025-10-26T18:45:45.416Z"
 }

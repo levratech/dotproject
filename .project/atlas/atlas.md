@@ -89,17 +89,18 @@ export default {
     "commander": "^11.0.0",
     "fs-extra": "^11.0.0",
     "globby": "^14.0.0",
+    "gray-matter": "^4.0.3",
     "inquirer": "^9.0.0",
-    "gray-matter": "^4.0.3"
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "chalk": "^5.3.0",
-    "fs-extra": "^11.2.0",
-    "tmp": "^0.2.1",
-    "execa": "^9.0.0",
     "@babel/core": "^7.23.0",
-    "@babel/preset-env": "^7.23.0"
+    "@babel/preset-env": "^7.23.0",
+    "chalk": "^5.3.0",
+    "execa": "^9.0.0",
+    "fs-extra": "^11.2.0",
+    "jest": "^29.7.0",
+    "tmp": "^0.2.1"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -124,6 +125,7 @@ import storyIndex from '../src/commands/story-index.js';
 import idea from '../src/commands/idea.js';
 import ideaUpdate from '../src/commands/idea-update.js';
 import docsIndex from '../src/commands/docs-index.js';
+import contracts from '../src/commands/contracts.js';
 
 const program = new Command();
 
@@ -215,6 +217,21 @@ docsCmd
   .description('Build docs index')
   .action(docsIndex);
 
+// --- Contracts commands ---
+const contractsCmd = program
+  .command('contracts')
+  .description('Manage function contracts');
+
+contractsCmd
+  .command('list')
+  .description('List all declared function contracts')
+  .action(() => contracts('list'));
+
+contractsCmd
+  .command('validate')
+  .description('Validate the contracts structure')
+  .action(() => contracts('validate'));
+
 program
   .command('test')
   .description('Run Jest tests')
@@ -225,8 +242,6 @@ program
   });
 
 // --- Parse CLI ---
-program.parse();
-
 program.parse();
 
 ```
@@ -482,6 +497,40 @@ export default async function canonicalize() {
   }
 
   console.log(chalk.green(`✅ Canonicalized ${count} files.`));
+}
+```
+
+--- FILE: src/commands/contracts.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import yaml from 'js-yaml';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+
+export default async function contracts(action) {
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('❌ Not in a .project repository.'));
+    process.exit(1);
+  }
+
+  const contractsDir = path.join(root, '.project', 'contracts');
+  const functionsPath = path.join(contractsDir, 'functions.yaml');
+
+  if (action === 'list') {
+    const { functions } = yaml.load(await fs.readFile(functionsPath, 'utf8'));
+    console.log(chalk.cyan(`📜 ${functions.length} function contracts found:`));
+    functions.forEach(fn => {
+      console.log(`- ${chalk.yellow(fn.id)} (${fn.layer}) — ${fn.description}`);
+    });
+  } else if (action === 'validate') {
+    // simple structure validation (stub)
+    const valid = fs.existsSync(functionsPath);
+    console.log(valid ? chalk.green('✅ Contracts structure valid.') : chalk.red('❌ Contracts missing.'));
+  } else {
+    console.log(chalk.red('Usage: dot contracts <list|validate>'));
+  }
 }
 ```
 

@@ -11,6 +11,7 @@ import storyIndex from '../src/commands/story-index.js';
 import idea from '../src/commands/idea.js';
 import ideaUpdate from '../src/commands/idea-update.js';
 import docsIndex from '../src/commands/docs-index.js';
+import contracts from '../src/commands/contracts.js';
 
 const program = new Command();
 
@@ -102,6 +103,21 @@ docsCmd
   .description('Build docs index')
   .action(docsIndex);
 
+// --- Contracts commands ---
+const contractsCmd = program
+  .command('contracts')
+  .description('Manage function contracts');
+
+contractsCmd
+  .command('list')
+  .description('List all declared function contracts')
+  .action(() => contracts('list'));
+
+contractsCmd
+  .command('validate')
+  .description('Validate the contracts structure')
+  .action(() => contracts('validate'));
+
 program
   .command('test')
   .description('Run Jest tests')
@@ -112,6 +128,4 @@ program
   });
 
 // --- Parse CLI ---
-program.parse();
-
 program.parse();
