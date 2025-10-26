@@ -58,6 +58,16 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
 
 ```
 
+--- FILE: jest.config.js
+```js
+export default {
+  testEnvironment: "node",
+  verbose: true,
+  roots: ["<rootDir>/tests"],
+  transform: {},
+};
+```
+
 --- FILE: package.json
 ```json
 {
@@ -71,7 +81,7 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
     "dot": "bin/cli.js"
   },
   "scripts": {
-    "start": "node bin/cli.js"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --color"
   },
   "dependencies": {
     "ajv": "^8.17.1",
@@ -81,6 +91,15 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
     "globby": "^14.0.0",
     "inquirer": "^9.0.0",
     "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "chalk": "^5.3.0",
+    "fs-extra": "^11.2.0",
+    "tmp": "^0.2.1",
+    "execa": "^9.0.0",
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -95,6 +114,7 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import chalk from 'chalk';
 import init from '../src/commands/init.js';
 import storyNew from '../src/commands/story-new.js';
 import atlasBuild from '../src/commands/atlas-build.js';
@@ -195,7 +215,18 @@ docsCmd
   .description('Build docs index')
   .action(docsIndex);
 
+program
+  .command('test')
+  .description('Run Jest tests')
+  .action(async () => {
+    const { execaSync } = await import('execa');
+    console.log(chalk.cyan('🧪 Running tests...'));
+    execaSync('npx', ['jest', '--color'], { stdio: 'inherit', env: { ...process.env, NODE_OPTIONS: '--experimental-vm-modules' } });
+  });
+
 // --- Parse CLI ---
+program.parse();
+
 program.parse();
 
 ```
@@ -1046,6 +1077,50 @@ export function sortKeys(obj) {
     sorted[key] = sortKeys(obj[key]);
   });
   return sorted;
+}
+```
+
+--- FILE: tests/cli/init.test.js
+```js
+import fs from "fs-extra";
+import path from "path";
+import { jest } from '@jest/globals';
+import init from "../../src/commands/init.js";
+import { makeTempProject } from "../helpers/setup.js";
+
+jest.mock('chalk', () => ({
+  green: jest.fn(),
+  red: jest.fn()
+}));
+
+describe("dot init", () => {
+  it("creates a .project folder with base files", async () => {
+    const cwd = makeTempProject();
+    // Create .git to simulate a repo
+    fs.mkdirSync(path.join(cwd, '.git'));
+    // Change to the temp dir
+    process.chdir(cwd);
+    await init();
+    const projectPath = path.join(cwd, ".project");
+    expect(fs.existsSync(projectPath)).toBe(true);
+    expect(fs.existsSync(path.join(projectPath, "stories"))).toBe(true);
+    expect(fs.existsSync(path.join(projectPath, "epics"))).toBe(true);
+    expect(fs.existsSync(path.join(projectPath, "docs"))).toBe(true);
+    expect(fs.existsSync(path.join(projectPath, "config.json"))).toBe(true);
+  });
+});
+```
+
+--- FILE: tests/helpers/setup.js
+```js
+import fs from "fs-extra";
+import os from "os";
+import path from "path";
+
+export function makeTempProject() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dotproject-"));
+  process.chdir(dir);
+  return dir;
 }
 ```
 

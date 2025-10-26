@@ -49,7 +49,18 @@
         "agents"
       ],
       "title": "Expose local API for agent integration"
+    },
+    {
+      "created": {},
+      "id": "IDEA-0006",
+      "path": "ideas/idea-0006.md",
+      "tags": [
+        "agents",
+        "docs",
+        "automation"
+      ],
+      "title": "Add agents documentation command"
     }
   ],
-  "timestamp": "2025-10-23T20:17:42.629Z"
+  "timestamp": "2025-10-24T23:07:49.526Z"
 }

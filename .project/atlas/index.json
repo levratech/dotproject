@@ -13,16 +13,22 @@
       "lines": 38
     },
     {
+      "path": "jest.config.js",
+      "size": 110,
+      "sha1": "76dc69b133e5aeea755101ca6981ba601654d653",
+      "lines": 6
+    },
+    {
       "path": "package.json",
-      "size": 586,
-      "sha1": "722c43c2b1292819d4cab140a64816e570084987",
-      "lines": 28
+      "size": 831,
+      "sha1": "a3ac0ba1f2ba7a89a30374d64ac4825e23d26a9c",
+      "lines": 37
     },
     {
       "path": "bin/cli.js",
-      "size": 2590,
-      "sha1": "c801a2d9dcc0f6fad759aed8753fdab2a6020eac",
-      "lines": 106
+      "size": 2962,
+      "sha1": "5bbd5d2e19afa7e2e7f908880461c9af9f3b4bc7",
+      "lines": 118
     },
     {
       "path": "schemas/idea.json",
@@ -107,8 +113,20 @@
       "size": 378,
       "sha1": "9ff03b40b4fe2060042354e2c15ffc4171745a10",
       "lines": 16
+    },
+    {
+      "path": "tests/cli/init.test.js",
+      "size": 947,
+      "sha1": "e7363270a17ef3797aaf0ceecf7d521cf3846c57",
+      "lines": 27
+    },
+    {
+      "path": "tests/helpers/setup.js",
+      "size": 216,
+      "sha1": "1075c4309a59650508134baf9d8f0dc738a3ba49",
+      "lines": 9
     }
   ],
-  "totalFiles": 18,
-  "timestamp": "2025-10-23T20:17:48.289Z"
+  "totalFiles": 21,
+  "timestamp": "2025-10-24T23:35:30.220Z"
 }

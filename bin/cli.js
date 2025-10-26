@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import chalk from 'chalk';
 import init from '../src/commands/init.js';
 import storyNew from '../src/commands/story-new.js';
 import atlasBuild from '../src/commands/atlas-build.js';
@@ -101,5 +102,16 @@ docsCmd
   .description('Build docs index')
   .action(docsIndex);
 
+program
+  .command('test')
+  .description('Run Jest tests')
+  .action(async () => {
+    const { execaSync } = await import('execa');
+    console.log(chalk.cyan('🧪 Running tests...'));
+    execaSync('npx', ['jest', '--color'], { stdio: 'inherit', env: { ...process.env, NODE_OPTIONS: '--experimental-vm-modules' } });
+  });
+
 // --- Parse CLI ---
+program.parse();
+
 program.parse();
