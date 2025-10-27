@@ -1,0 +1,14 @@
+{
+  "key": "visibility",
+  "title": "Project Visibility in Atlas",
+  "tags": [
+    "atlas",
+    "docs"
+  ],
+  "description": "Append compact project/contract summaries to atlas.md.",
+  "id": "EP0002",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.461Z",
+  "updated": "2025-10-26T21:57:04.461Z"
+}

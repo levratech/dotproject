@@ -1,0 +1,37 @@
+{
+  "key": "story-contracts-tests",
+  "epic": "EP0001",
+  "title": "Jest tests for contracts validation and indexing",
+  "priority": "high",
+  "acceptance": [
+    "Tests fail on unknown contract ID",
+    "Tests assert index.json contains declared functions"
+  ],
+  "tasks": [
+    {
+      "key": "t-tests",
+      "title": "Write Jest tests",
+      "prompt": {
+        "role": "builder",
+        "intent": "Add tests for schema, validator cross-check, and contracts index output.",
+        "constraints": {
+          "files_allowlist": [
+            "tests/**",
+            "src/commands/validate.js",
+            "src/commands/contracts.js",
+            ".project/contracts/**"
+          ]
+        },
+        "acceptance": [
+          "Green tests with native ESM config"
+        ]
+      }
+    }
+  ],
+  "id": "ST0003",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.462Z",
+  "updated": "2025-10-26T21:57:04.462Z",
+  "uuid": "12de266a-cc9e-4335-8597-c94aa9ae1992"
+}

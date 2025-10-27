@@ -1,0 +1,204 @@
+version: 1
+plan:
+  id: PLAN-2025-10-23
+  title: 'Sprint: Contracts Loop & Visibility'
+  created: 2025-10-23T18:40:00.000Z
+  owner: adam
+  tags:
+    - contracts
+    - validation
+    - atlas
+epics:
+  - key: contracts
+    title: Contracts Integration
+    tags:
+      - contracts
+      - validation
+    description: Enforce contracts across stories and expose them in project views.
+    id: EP0001
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.461Z'
+    updated: '2025-10-26T21:57:04.461Z'
+  - key: visibility
+    title: Project Visibility in Atlas
+    tags:
+      - atlas
+      - docs
+    description: Append compact project/contract summaries to atlas.md.
+    id: EP0002
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.461Z'
+    updated: '2025-10-26T21:57:04.461Z'
+stories:
+  - key: story-contracts-schema
+    epic: EP0001
+    title: Add contracts to story schema and strict validation
+    priority: high
+    contracts:
+      implements:
+        - dot.contracts.validate
+      depends_on:
+        - dot.validate
+    acceptance:
+      - Story schema supports `contracts.{implements,depends_on}` arrays
+      - '`dot validate` fails when stories reference unknown contract IDs'
+      - Tests cover valid/invalid cases
+    tasks:
+      - key: t-schema
+        title: Extend story.json schema
+        prompt:
+          role: builder
+          intent: Add `contracts` block to story schema; document allowed shapes.
+          constraints:
+            files_allowlist:
+              - schemas/**
+              - src/commands/validate.js
+              - tests/**
+          acceptance:
+            - Schema allows both arrays; disallows non-strings
+            - Canonicalize after write
+      - key: t-crosscheck
+        title: Cross-check contract IDs during validate
+        prompt:
+          role: builder
+          intent: >-
+            Load `.project/contracts/functions.yaml`; ensure each referenced ID
+            exists; otherwise error with file path + field + id.
+          constraints:
+            files_allowlist:
+              - src/commands/validate.js
+              - .project/contracts/functions.yaml
+              - tests/**
+          acceptance:
+            - Invalid ID produces clear, actionable error
+    id: ST0001
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.461Z'
+    updated: '2025-10-26T21:57:04.461Z'
+    uuid: ba0b64b3-b6cf-4d0e-b9eb-9009667f370c
+  - key: story-contracts-index
+    epic: EP0001
+    title: Generate contracts/index.json from YAML
+    priority: medium
+    contracts:
+      implements:
+        - dot.contracts.index
+      depends_on:
+        - dot.canonicalize
+    acceptance:
+      - Write `.project/contracts/index.json` with ids, layers, deps
+      - Command is idempotent and canonical
+    tasks:
+      - key: t-index
+        title: Implement `dot contracts index`
+        prompt:
+          role: builder
+          intent: >-
+            Parse layers.yaml + functions.yaml; write a canonical
+            `.project/contracts/index.json`.
+          constraints:
+            files_allowlist:
+              - src/commands/contracts.js
+              - .project/contracts/**
+              - tests/**
+          acceptance:
+            - Sorted keys; RFC3339 timestamp
+            - Includes dependency adjacency lists
+    id: ST0002
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.462Z'
+    updated: '2025-10-26T21:57:04.462Z'
+    uuid: 8cca3dff-1552-4b70-969a-22abc6152fe5
+  - key: story-contracts-tests
+    epic: EP0001
+    title: Jest tests for contracts validation and indexing
+    priority: high
+    acceptance:
+      - Tests fail on unknown contract ID
+      - Tests assert index.json contains declared functions
+    tasks:
+      - key: t-tests
+        title: Write Jest tests
+        prompt:
+          role: builder
+          intent: >-
+            Add tests for schema, validator cross-check, and contracts index
+            output.
+          constraints:
+            files_allowlist:
+              - tests/**
+              - src/commands/validate.js
+              - src/commands/contracts.js
+              - .project/contracts/**
+          acceptance:
+            - Green tests with native ESM config
+    id: ST0003
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.462Z'
+    updated: '2025-10-26T21:57:04.462Z'
+    uuid: 12de266a-cc9e-4335-8597-c94aa9ae1992
+  - key: story-agents-docs
+    epic: EP0001
+    title: Document agent use of contracts in AGENTS.md
+    priority: medium
+    acceptance:
+      - AGENTS.md includes how Planner/Builder read contracts and stories
+    tasks:
+      - key: t-agents
+        title: Update AGENTS.md
+        prompt:
+          role: builder
+          intent: >-
+            Add a section describing how agents use `contracts/index.json` to
+            plan dependencies and choose commands.
+          constraints:
+            files_allowlist:
+              - AGENTS.md
+              - .project/contracts/index.json
+              - src/commands/contracts.js
+          acceptance:
+            - Clear roles and I/O expectations
+    id: ST0004
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.462Z'
+    updated: '2025-10-26T21:57:04.462Z'
+    uuid: c6d8efad-5543-4c4a-927f-3b18c360ffc6
+  - key: story-atlas-summary
+    epic: EP0002
+    title: Append project + contracts summary to atlas
+    priority: medium
+    contracts:
+      depends_on:
+        - dot.docs.index
+        - dot.story.index
+        - dot.contracts.index
+    acceptance:
+      - atlas.md ends with a 'Project Summary' and 'Contracts Summary' sections
+      - Build remains deterministic and fast
+    tasks:
+      - key: t-atlas
+        title: Render project/contract summaries
+        prompt:
+          role: builder
+          intent: >-
+            Read `.project/index.json` and `.project/contracts/index.json`;
+            append small summaries to the end of atlas.md.
+          constraints:
+            files_allowlist:
+              - src/commands/atlas-build.js
+              - .project/index.json
+              - .project/contracts/index.json
+          acceptance:
+            - Shows counts and top contract IDs by layer
+    id: ST0005
+    planId: PLAN-0001
+    status: draft
+    created: '2025-10-26T21:57:04.462Z'
+    updated: '2025-10-26T21:57:04.462Z'
+    uuid: a73d9ec3-05fa-4cf4-bb0e-4c3452c4b099

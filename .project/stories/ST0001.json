@@ -1,0 +1,64 @@
+{
+  "key": "story-contracts-schema",
+  "epic": "EP0001",
+  "title": "Add contracts to story schema and strict validation",
+  "priority": "high",
+  "contracts": {
+    "implements": [
+      "dot.contracts.validate"
+    ],
+    "depends_on": [
+      "dot.validate"
+    ]
+  },
+  "acceptance": [
+    "Story schema supports `contracts.{implements,depends_on}` arrays",
+    "`dot validate` fails when stories reference unknown contract IDs",
+    "Tests cover valid/invalid cases"
+  ],
+  "tasks": [
+    {
+      "key": "t-schema",
+      "title": "Extend story.json schema",
+      "prompt": {
+        "role": "builder",
+        "intent": "Add `contracts` block to story schema; document allowed shapes.",
+        "constraints": {
+          "files_allowlist": [
+            "schemas/**",
+            "src/commands/validate.js",
+            "tests/**"
+          ]
+        },
+        "acceptance": [
+          "Schema allows both arrays; disallows non-strings",
+          "Canonicalize after write"
+        ]
+      }
+    },
+    {
+      "key": "t-crosscheck",
+      "title": "Cross-check contract IDs during validate",
+      "prompt": {
+        "role": "builder",
+        "intent": "Load `.project/contracts/functions.yaml`; ensure each referenced ID exists; otherwise error with file path + field + id.",
+        "constraints": {
+          "files_allowlist": [
+            "src/commands/validate.js",
+            ".project/contracts/functions.yaml",
+            "tests/**"
+          ]
+        },
+        "acceptance": [
+          "Invalid ID produces clear, actionable error"
+        ]
+      }
+    }
+  ],
+  "id": "ST0001",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.461Z",
+  "updated": "2025-10-26T21:57:04.461Z",
+  "uuid": "ba0b64b3-b6cf-4d0e-b9eb-9009667f370c"
+}

@@ -58,6 +58,143 @@ Prompts for story title, risk level, and associated epic, then creates a new fil
 
 ```
 
+--- FILE: import.yaml
+```yaml
+version: 1
+plan:
+  id: PLAN-2025-10-23
+  title: "Sprint: Contracts Loop & Visibility"
+  created: 2025-10-23T18:40:00Z
+  owner: adam
+  tags: [contracts,validation,atlas]
+
+epics:
+  - key: contracts
+    title: "Contracts Integration"
+    tags: [contracts,validation]
+    description: "Enforce contracts across stories and expose them in project views."
+
+  - key: visibility
+    title: "Project Visibility in Atlas"
+    tags: [atlas,docs]
+    description: "Append compact project/contract summaries to atlas.md."
+
+stories:
+  # 4) Schema Integration — strict validation
+  - key: story-contracts-schema
+    epic: contracts
+    title: "Add contracts to story schema and strict validation"
+    priority: high
+    contracts:
+      implements: ["dot.contracts.validate"]
+      depends_on: ["dot.validate"]
+    acceptance:
+      - "Story schema supports `contracts.{implements,depends_on}` arrays"
+      - "`dot validate` fails when stories reference unknown contract IDs"
+      - "Tests cover valid/invalid cases"
+    tasks:
+      - key: t-schema
+        title: "Extend story.json schema"
+        prompt:
+          role: builder
+          intent: "Add `contracts` block to story schema; document allowed shapes."
+          constraints:
+            files_allowlist: ["schemas/**", "src/commands/validate.js", "tests/**"]
+          acceptance:
+            - "Schema allows both arrays; disallows non-strings"
+            - "Canonicalize after write"
+      - key: t-crosscheck
+        title: "Cross-check contract IDs during validate"
+        prompt:
+          role: builder
+          intent: "Load `.project/contracts/functions.yaml`; ensure each referenced ID exists; otherwise error with file path + field + id."
+          constraints:
+            files_allowlist: ["src/commands/validate.js", ".project/contracts/functions.yaml", "tests/**"]
+          acceptance:
+            - "Invalid ID produces clear, actionable error"
+
+  # 5) Dynamic Contract Indexing (JSON view)
+  - key: story-contracts-index
+    epic: contracts
+    title: "Generate contracts/index.json from YAML"
+    priority: medium
+    contracts:
+      implements: ["dot.contracts.index"]
+      depends_on: ["dot.canonicalize"]
+    acceptance:
+      - "Write `.project/contracts/index.json` with ids, layers, deps"
+      - "Command is idempotent and canonical"
+    tasks:
+      - key: t-index
+        title: "Implement `dot contracts index`"
+        prompt:
+          role: builder
+          intent: "Parse layers.yaml + functions.yaml; write a canonical `.project/contracts/index.json`."
+          constraints:
+            files_allowlist: ["src/commands/contracts.js", ".project/contracts/**", "tests/**"]
+          acceptance:
+            - "Sorted keys; RFC3339 timestamp"
+            - "Includes dependency adjacency lists"
+
+  # 6) Cross-Validation Tests
+  - key: story-contracts-tests
+    epic: contracts
+    title: "Jest tests for contracts validation and indexing"
+    priority: high
+    acceptance:
+      - "Tests fail on unknown contract ID"
+      - "Tests assert index.json contains declared functions"
+    tasks:
+      - key: t-tests
+        title: "Write Jest tests"
+        prompt:
+          role: builder
+          intent: "Add tests for schema, validator cross-check, and contracts index output."
+          constraints:
+            files_allowlist: ["tests/**", "src/commands/validate.js", "src/commands/contracts.js", ".project/contracts/**"]
+          acceptance:
+            - "Green tests with native ESM config"
+
+  # 7) Agent Awareness Layer
+  - key: story-agents-docs
+    epic: contracts
+    title: "Document agent use of contracts in AGENTS.md"
+    priority: medium
+    acceptance:
+      - "AGENTS.md includes how Planner/Builder read contracts and stories"
+    tasks:
+      - key: t-agents
+        title: "Update AGENTS.md"
+        prompt:
+          role: builder
+          intent: "Add a section describing how agents use `contracts/index.json` to plan dependencies and choose commands."
+          constraints:
+            files_allowlist: ["AGENTS.md", ".project/contracts/index.json", "src/commands/contracts.js"]
+          acceptance:
+            - "Clear roles and I/O expectations"
+
+  # 8) Visual Atlas Integration
+  - key: story-atlas-summary
+    epic: visibility
+    title: "Append project + contracts summary to atlas"
+    priority: medium
+    contracts:
+      depends_on: ["dot.docs.index", "dot.story.index", "dot.contracts.index"]
+    acceptance:
+      - "atlas.md ends with a 'Project Summary' and 'Contracts Summary' sections"
+      - "Build remains deterministic and fast"
+    tasks:
+      - key: t-atlas
+        title: "Render project/contract summaries"
+        prompt:
+          role: builder
+          intent: "Read `.project/index.json` and `.project/contracts/index.json`; append small summaries to the end of atlas.md."
+          constraints:
+            files_allowlist: ["src/commands/atlas-build.js", ".project/index.json", ".project/contracts/index.json"]
+          acceptance:
+            - "Shows counts and top contract IDs by layer"
+```
+
 --- FILE: jest.config.js
 ```js
 export default {
@@ -85,6 +222,7 @@ export default {
   },
   "dependencies": {
     "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "chalk": "^5.0.0",
     "commander": "^11.0.0",
     "fs-extra": "^11.0.0",
@@ -126,6 +264,8 @@ import idea from '../src/commands/idea.js';
 import ideaUpdate from '../src/commands/idea-update.js';
 import docsIndex from '../src/commands/docs-index.js';
 import contracts from '../src/commands/contracts.js';
+import bulkImport from '../src/commands/bulk-import.js';
+import bulkExplain from '../src/commands/bulk-explain.js';
 
 const program = new Command();
 
@@ -232,6 +372,26 @@ contractsCmd
   .description('Validate the contracts structure')
   .action(() => contracts('validate'));
 
+// --- Bulk commands ---
+const bulkCmd = program
+  .command('bulk')
+  .description('Bulk data commands');
+
+bulkCmd
+  .command('import <file>')
+  .description('Import data from a file')
+  .option('--format <format>', 'File format: yaml or ndjson', 'yaml')
+  .option('--upsert', 'Update existing entities instead of failing')
+  .option('--dry-run', 'Show what would be done without writing')
+  .action((file, options) => bulkImport(file, options));
+
+bulkCmd
+  .command('explain <file>')
+  .description('Explain what a bulk import would do')
+  .option('--format <format>', 'File format: yaml or ndjson', 'yaml')
+  .action((file, options) => bulkExplain(file, options));
+
+// --- Test command ---
 program
   .command('test')
   .description('Run Jest tests')
@@ -462,6 +622,340 @@ async function writeIndex(atlasDir, metadata) {
   };
   const indexPath = path.join(atlasDir, 'index.json');
   await fs.writeJson(indexPath, indexData, { spaces: 2 });
+}
+```
+
+--- FILE: src/commands/bulk-explain.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import yaml from 'js-yaml';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+
+/**
+ * Explain what a bulk import would do without executing.
+ */
+export default async function bulkExplain(filePath, options = {}) {
+  const { format = 'yaml' } = options;
+
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a project.'));
+    process.exit(1);
+  }
+
+  if (!await fs.pathExists(filePath)) {
+    console.error(chalk.red(`File not found: ${filePath}`));
+    process.exit(1);
+  }
+
+  console.log(chalk.cyan('🔍 Explaining bulk import...'));
+
+  let data;
+  if (format === 'yaml') {
+    const content = await fs.readFile(filePath, 'utf8');
+    data = yaml.load(content);
+  } else if (format === 'ndjson') {
+    const content = await fs.readFile(filePath, 'utf8');
+    const lines = content.trim().split('\n').filter(line => line);
+    data = { epics: [], stories: [], tasks: [], prompts: [] };
+    for (const line of lines) {
+      const item = JSON.parse(line);
+      const type = item.type;
+      if (data[type + 's']) {
+        data[type + 's'].push(item);
+      }
+    }
+  } else {
+    console.error(chalk.red('Unsupported format'));
+    process.exit(1);
+  }
+
+  const entities = {
+    epics: data.epics || [],
+    stories: data.stories || [],
+    tasks: data.tasks || [],
+    prompts: data.prompts || []
+  };
+
+  // Load sequence
+  const seqPath = path.join(root, '.project', 'sequence.json');
+  let sequence = { epics: 1, stories: 1, tasks: 1, plans: 1 };
+  if (await fs.pathExists(seqPath)) {
+    sequence = await fs.readJson(seqPath);
+  }
+
+  const planId = `PLAN-${sequence.plans.toString().padStart(4, '0')}`;
+
+  // Simulate ID assignment
+  const keyMaps = { epics: {}, stories: {}, tasks: {} };
+  for (const type of ['epics', 'stories', 'tasks']) {
+    for (const item of entities[type]) {
+      if (!item.id) {
+        const prefixes = { epics: 'EP', stories: 'ST', tasks: 'TK' };
+        item.id = `${prefixes[type]}${sequence[type].toString().padStart(4, '0')}`;
+        sequence[type]++;
+      }
+      if (item.key) {
+        keyMaps[type][item.key] = item.id;
+      }
+    }
+  }
+
+  console.log(chalk.green('Explanation:'));
+  console.log(`Plan ID: ${planId}`);
+  console.log(`Epics to create: ${entities.epics.length}`);
+  console.log(`Stories to create: ${entities.stories.length}`);
+  console.log(`Tasks to create: ${entities.tasks.length}`);
+  console.log(`Prompts to create: ${entities.prompts.length}`);
+  console.log('Key to ID mappings:');
+  for (const type of ['epics', 'stories', 'tasks']) {
+    for (const item of entities[type]) {
+      if (item.key) {
+        console.log(`  ${type.slice(0, -1)}.${item.key} -> ${item.id}`);
+      }
+    }
+  }
+  console.log('Files to write:');
+  console.log(`  .project/plans/${planId}.yaml`);
+  for (const type of ['epics', 'stories', 'tasks']) {
+    for (const item of entities[type]) {
+      console.log(`  .project/${type}/${item.id}.json`);
+    }
+  }
+  for (const prompt of entities.prompts) {
+    const id = prompt.storyId || prompt.taskId;
+    const prefix = prompt.storyId ? 'STORY' : 'TASK';
+    console.log(`  .project/prompts/${prefix}-${id}.md`);
+  }
+  for (const type of ['stories', 'tasks']) {
+    for (const item of entities[type]) {
+      if (item.prompt) {
+        const prefix = type === 'stories' ? 'STORY' : 'TASK';
+        console.log(`  .project/prompts/${prefix}-${item.id}.md`);
+      }
+    }
+  }
+}
+```
+
+--- FILE: src/commands/bulk-import.js
+```js
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import yaml from 'js-yaml';
+import crypto from 'crypto';
+import { findProjectRoot } from '../utils/findProjectRoot.js';
+import storyIndex from './story-index.js';
+import docsIndex from './docs-index.js';
+import canonicalize from './canonicalize.js';
+import validate from './validate.js';
+
+/**
+ * Bulk import from a file (YAML or NDJSON).
+ */
+export default async function bulkImport(filePath, options = {}) {
+  const { format = 'yaml', upsert = false, dryRun = false } = options;
+
+  const root = findProjectRoot();
+  if (!root) {
+    console.error(chalk.red('Not in a project.'));
+    process.exit(1);
+  }
+
+  if (!await fs.pathExists(filePath)) {
+    console.error(chalk.red(`File not found: ${filePath}`));
+    process.exit(1);
+  }
+
+  console.log(chalk.cyan('🔄 Parsing bulk import file...'));
+
+  let data;
+  if (format === 'yaml') {
+    const content = await fs.readFile(filePath, 'utf8');
+    data = yaml.load(content);
+  } else if (format === 'ndjson') {
+    const content = await fs.readFile(filePath, 'utf8');
+    const lines = content.trim().split('\n').filter(line => line);
+    data = { epics: [], stories: [], tasks: [], prompts: [] };
+    for (const line of lines) {
+      const item = JSON.parse(line);
+      const type = item.type; // assume each has 'type': 'epic', 'story', etc.
+      if (data[type + 's']) {
+        data[type + 's'].push(item);
+      }
+    }
+  } else {
+    console.error(chalk.red('Unsupported format'));
+    process.exit(1);
+  }
+
+  // Assume data is { epics: [...], stories: [...], tasks: [...], prompts: [...] }
+  // Each item has key (local), id (optional), etc.
+
+  const entities = {
+    epics: data.epics || [],
+    stories: data.stories || [],
+    tasks: data.tasks || [],
+    prompts: data.prompts || []
+  };
+
+  // Load sequence
+  const seqPath = path.join(root, '.project', 'sequence.json');
+  let sequence = { epics: 1, stories: 1, tasks: 1, plans: 1 };
+  if (await fs.pathExists(seqPath)) {
+    sequence = await fs.readJson(seqPath);
+  }
+
+  // Assign plan ID
+  const planId = `PLAN-${sequence.plans.toString().padStart(4, '0')}`;
+  sequence.plans++;
+
+  // Build key to ID maps
+  const keyMaps = { epics: {}, stories: {}, tasks: {} };
+
+  // First pass: assign IDs and build maps
+  for (const type of ['epics', 'stories', 'tasks']) {
+    for (const item of entities[type]) {
+      if (!item.id) {
+        const prefixes = { epics: 'EP', stories: 'ST', tasks: 'TK' };
+        item.id = `${prefixes[type]}${sequence[type].toString().padStart(4, '0')}`;
+        sequence[type]++;
+      }
+      if (item.key) {
+        keyMaps[type][item.key] = item.id;
+      }
+      item.planId = planId;
+      item.status = item.status || 'draft';
+      item.created = item.created || new Date().toISOString();
+      item.updated = item.updated || new Date().toISOString();
+      if (type === 'stories') {
+        item.uuid = item.uuid || crypto.randomUUID();
+      }
+    }
+  }
+
+  // Resolve keys
+  for (const story of entities.stories) {
+    if (story.epic && typeof story.epic === 'string' && !story.epic.startsWith('EP-')) {
+      story.epic = keyMaps.epics[story.epic] || story.epic;
+    }
+  }
+  // Assume tasks may reference stories similarly
+
+  // Now, prepare to write
+  const dirs = {
+    plans: path.join(root, '.project', 'plans'),
+    epics: path.join(root, '.project', 'epics'),
+    stories: path.join(root, '.project', 'stories'),
+    tasks: path.join(root, '.project', 'tasks'),
+    prompts: path.join(root, '.project', 'prompts')
+  };
+
+  for (const dir of Object.values(dirs)) {
+    await fs.ensureDir(dir);
+  }
+
+  // Check for conflicts if not upsert
+  if (!upsert && !dryRun) {
+    for (const type of ['epics', 'stories', 'tasks']) {
+      for (const item of entities[type]) {
+        const filePath = path.join(dirs[type], `${item.id}.json`);
+        if (await fs.pathExists(filePath)) {
+          console.error(chalk.red(`Conflict: ${filePath} already exists`));
+          process.exit(1);
+        }
+      }
+    }
+  }
+
+  // Dry run: print what would be done
+  if (dryRun) {
+    console.log(chalk.yellow('Dry run mode:'));
+    console.log(`Plan: ${planId}`);
+    console.log(`Epics: ${entities.epics.length}`);
+    console.log(`Stories: ${entities.stories.length}`);
+    console.log(`Tasks: ${entities.tasks.length}`);
+    console.log(`Prompts: ${entities.prompts.length}`);
+    console.log('Key mappings:');
+    for (const type of ['epics', 'stories', 'tasks']) {
+      for (const item of entities[type]) {
+        if (item.key) {
+          console.log(`  ${type}.${item.key} -> ${item.id}`);
+        }
+      }
+    }
+    return;
+  }
+
+  // Write plan
+  const planFile = path.join(dirs.plans, `${planId}.yaml`);
+  await fs.writeFile(planFile, yaml.dump(data));
+
+  // Write entities
+  for (const type of ['epics', 'stories', 'tasks']) {
+    for (const item of entities[type]) {
+      const filePath = path.join(dirs[type], `${item.id}.json`);
+      await fs.writeJson(filePath, item, { spaces: 2 });
+    }
+  }
+
+  // Write prompts
+  for (const prompt of entities.prompts) {
+    // Assume prompt has storyId or taskId, and content
+    const id = prompt.storyId || prompt.taskId;
+    const prefix = prompt.storyId ? 'STORY' : 'TASK';
+    const promptFile = path.join(dirs.prompts, `${prefix}-${id}.md`);
+    await fs.writeFile(promptFile, prompt.content || '');
+  }
+
+  // Also, for stories/tasks with prompt field
+  for (const type of ['stories', 'tasks']) {
+    for (const item of entities[type]) {
+      if (item.prompt) {
+        const prefix = type === 'stories' ? 'STORY' : 'TASK';
+        const promptFile = path.join(dirs.prompts, `${prefix}-${item.id}.md`);
+        const content = generatePromptMd(item.prompt);
+        await fs.writeFile(promptFile, content);
+      }
+    }
+  }
+
+  // Save sequence
+  await fs.writeJson(seqPath, sequence);
+
+  console.log(chalk.green('✅ Bulk import completed'));
+  console.log(`Plan: ${planId}`);
+  console.log(`Epics: ${entities.epics.length}`);
+  console.log(`Stories: ${entities.stories.length}`);
+  console.log(`Tasks: ${entities.tasks.length}`);
+  console.log(`Prompts: ${entities.prompts.length}`);
+
+  // Validate
+  console.log(chalk.cyan('🔄 Validating...'));
+  await validate();
+
+  // Post-import
+  console.log(chalk.cyan('🔄 Running story index...'));
+  await storyIndex();
+  console.log(chalk.cyan('🔄 Running docs index...'));
+  await docsIndex();
+  if (await fs.pathExists(path.join(root, '.project', 'canonicalize.js'))) { // Wait, canonicalize is a command
+    console.log(chalk.cyan('🔄 Running canonicalize...'));
+    await canonicalize();
+  }
+}
+
+function generatePromptMd(prompt) {
+  // Assume prompt is { role, intent, constraints?, acceptance? }
+  let md = `# Prompt\n\n`;
+  if (prompt.role) md += `**Role:** ${prompt.role}\n\n`;
+  if (prompt.intent) md += `**Intent:** ${prompt.intent}\n\n`;
+  if (prompt.constraints) md += `**Constraints:** ${prompt.constraints}\n\n`;
+  if (prompt.acceptance) md += `**Acceptance:** ${prompt.acceptance}\n\n`;
+  return md;
 }
 ```
 
@@ -1031,6 +1525,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { globby } from 'globby';
 import { findProjectRoot } from '../utils/findProjectRoot.js';
 
@@ -1047,7 +1542,14 @@ export default async function validate() {
   const projectDir = path.join(root, '.project');
   const schemasDir = path.join(root, 'schemas');
 
-  const ajv = new Ajv();
+  // Keep strict validation (helpful to catch schema errors)
+  const ajv = new Ajv({
+    allErrors: true,
+    strict: true,          // keep strict to surface schema mistakes
+  });
+
+  // Register standard formats: date-time, uri, email, etc.
+  addFormats(ajv);
   const storySchemaPath = path.join(schemasDir, 'story.json');
   if (!(await fs.pathExists(storySchemaPath))) {
     console.error(chalk.red('Story schema not found.'));
@@ -1171,5 +1673,57 @@ export function makeTempProject() {
   process.chdir(dir);
   return dir;
 }
+```
+
+--- FILE: tests/schemas/date-time-format.test.js
+```js
+import { execaSync } from "execa";
+import fs from "fs-extra";
+import path from "path";
+import os from "os";
+
+function tmpDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), "dotproject-"));
+}
+
+describe("validate enforces date-time format", () => {
+  it("fails on invalid date-time and passes on valid", () => {
+    const cwd = tmpDir();
+    // Copy schemas and create minimal .project
+    fs.copySync(path.join(process.cwd(), 'schemas'), path.join(cwd, 'schemas'));
+    fs.ensureDirSync(path.join(cwd, ".project", "stories"));
+
+    const invalid = {
+      id: "STORY-9999",
+      title: "Dummy",
+      uuid: "123e4567-e89b-12d3-a456-426614174000",
+      status: "draft",
+      created: "not-a-date",
+      updated: "also-bad"
+    };
+    fs.writeJsonSync(path.join(cwd, ".project", "stories", "story-9999.json"), invalid, { spaces: 2 });
+
+    let failed = false;
+    try {
+      execaSync("node", [path.join(process.cwd(), "bin/cli.js"), "validate"], { cwd, stdio: "pipe" });
+    } catch (err) {
+      failed = true;
+      expect(String(err.stderr || err.stdout)).toMatch(/date-time/i);
+    }
+    expect(failed).toBe(true);
+
+    // Fix the timestamps to valid RFC3339
+    const valid = {
+      ...invalid,
+      created: "2025-10-26T21:50:00Z",
+      updated: "2025-10-26T21:51:00Z"
+    };
+    fs.writeJsonSync(path.join(cwd, ".project", "stories", "story-9999.json"), valid, { spaces: 2 });
+
+    // Should pass now
+    const { stdout } = execaSync("node", [path.join(process.cwd(), "bin/cli.js"), "validate"], { cwd, stdio: "pipe" });
+    expect(stdout).toMatch(/✅/); // keep consistent with existing success output
+  });
+});
 ```
 

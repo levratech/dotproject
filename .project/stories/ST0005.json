@@ -1,0 +1,43 @@
+{
+  "key": "story-atlas-summary",
+  "epic": "EP0002",
+  "title": "Append project + contracts summary to atlas",
+  "priority": "medium",
+  "contracts": {
+    "depends_on": [
+      "dot.docs.index",
+      "dot.story.index",
+      "dot.contracts.index"
+    ]
+  },
+  "acceptance": [
+    "atlas.md ends with a 'Project Summary' and 'Contracts Summary' sections",
+    "Build remains deterministic and fast"
+  ],
+  "tasks": [
+    {
+      "key": "t-atlas",
+      "title": "Render project/contract summaries",
+      "prompt": {
+        "role": "builder",
+        "intent": "Read `.project/index.json` and `.project/contracts/index.json`; append small summaries to the end of atlas.md.",
+        "constraints": {
+          "files_allowlist": [
+            "src/commands/atlas-build.js",
+            ".project/index.json",
+            ".project/contracts/index.json"
+          ]
+        },
+        "acceptance": [
+          "Shows counts and top contract IDs by layer"
+        ]
+      }
+    }
+  ],
+  "id": "ST0005",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.462Z",
+  "updated": "2025-10-26T21:57:04.462Z",
+  "uuid": "a73d9ec3-05fa-4cf4-bb0e-4c3452c4b099"
+}

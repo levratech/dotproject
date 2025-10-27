@@ -12,6 +12,8 @@ import idea from '../src/commands/idea.js';
 import ideaUpdate from '../src/commands/idea-update.js';
 import docsIndex from '../src/commands/docs-index.js';
 import contracts from '../src/commands/contracts.js';
+import bulkImport from '../src/commands/bulk-import.js';
+import bulkExplain from '../src/commands/bulk-explain.js';
 
 const program = new Command();
 
@@ -118,6 +120,26 @@ contractsCmd
   .description('Validate the contracts structure')
   .action(() => contracts('validate'));
 
+// --- Bulk commands ---
+const bulkCmd = program
+  .command('bulk')
+  .description('Bulk data commands');
+
+bulkCmd
+  .command('import <file>')
+  .description('Import data from a file')
+  .option('--format <format>', 'File format: yaml or ndjson', 'yaml')
+  .option('--upsert', 'Update existing entities instead of failing')
+  .option('--dry-run', 'Show what would be done without writing')
+  .action((file, options) => bulkImport(file, options));
+
+bulkCmd
+  .command('explain <file>')
+  .description('Explain what a bulk import would do')
+  .option('--format <format>', 'File format: yaml or ndjson', 'yaml')
+  .action((file, options) => bulkExplain(file, options));
+
+// --- Test command ---
 program
   .command('test')
   .description('Run Jest tests')

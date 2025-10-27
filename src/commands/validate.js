@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { globby } from 'globby';
 import { findProjectRoot } from '../utils/findProjectRoot.js';
 
@@ -18,7 +19,14 @@ export default async function validate() {
   const projectDir = path.join(root, '.project');
   const schemasDir = path.join(root, 'schemas');
 
-  const ajv = new Ajv();
+  // Keep strict validation (helpful to catch schema errors)
+  const ajv = new Ajv({
+    allErrors: true,
+    strict: true,          // keep strict to surface schema mistakes
+  });
+
+  // Register standard formats: date-time, uri, email, etc.
+  addFormats(ajv);
   const storySchemaPath = path.join(schemasDir, 'story.json');
   if (!(await fs.pathExists(storySchemaPath))) {
     console.error(chalk.red('Story schema not found.'));

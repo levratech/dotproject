@@ -1,0 +1,14 @@
+{
+  "key": "contracts",
+  "title": "Contracts Integration",
+  "tags": [
+    "contracts",
+    "validation"
+  ],
+  "description": "Enforce contracts across stories and expose them in project views.",
+  "id": "EP0001",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.461Z",
+  "updated": "2025-10-26T21:57:04.461Z"
+}

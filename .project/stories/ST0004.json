@@ -1,0 +1,35 @@
+{
+  "key": "story-agents-docs",
+  "epic": "EP0001",
+  "title": "Document agent use of contracts in AGENTS.md",
+  "priority": "medium",
+  "acceptance": [
+    "AGENTS.md includes how Planner/Builder read contracts and stories"
+  ],
+  "tasks": [
+    {
+      "key": "t-agents",
+      "title": "Update AGENTS.md",
+      "prompt": {
+        "role": "builder",
+        "intent": "Add a section describing how agents use `contracts/index.json` to plan dependencies and choose commands.",
+        "constraints": {
+          "files_allowlist": [
+            "AGENTS.md",
+            ".project/contracts/index.json",
+            "src/commands/contracts.js"
+          ]
+        },
+        "acceptance": [
+          "Clear roles and I/O expectations"
+        ]
+      }
+    }
+  ],
+  "id": "ST0004",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.462Z",
+  "updated": "2025-10-26T21:57:04.462Z",
+  "uuid": "c6d8efad-5543-4c4a-927f-3b18c360ffc6"
+}

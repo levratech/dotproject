@@ -1,0 +1,45 @@
+{
+  "key": "story-contracts-index",
+  "epic": "EP0001",
+  "title": "Generate contracts/index.json from YAML",
+  "priority": "medium",
+  "contracts": {
+    "implements": [
+      "dot.contracts.index"
+    ],
+    "depends_on": [
+      "dot.canonicalize"
+    ]
+  },
+  "acceptance": [
+    "Write `.project/contracts/index.json` with ids, layers, deps",
+    "Command is idempotent and canonical"
+  ],
+  "tasks": [
+    {
+      "key": "t-index",
+      "title": "Implement `dot contracts index`",
+      "prompt": {
+        "role": "builder",
+        "intent": "Parse layers.yaml + functions.yaml; write a canonical `.project/contracts/index.json`.",
+        "constraints": {
+          "files_allowlist": [
+            "src/commands/contracts.js",
+            ".project/contracts/**",
+            "tests/**"
+          ]
+        },
+        "acceptance": [
+          "Sorted keys; RFC3339 timestamp",
+          "Includes dependency adjacency lists"
+        ]
+      }
+    }
+  ],
+  "id": "ST0002",
+  "planId": "PLAN-0001",
+  "status": "draft",
+  "created": "2025-10-26T21:57:04.462Z",
+  "updated": "2025-10-26T21:57:04.462Z",
+  "uuid": "8cca3dff-1552-4b70-969a-22abc6152fe5"
+}

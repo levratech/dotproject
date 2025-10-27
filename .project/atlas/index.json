@@ -13,6 +13,12 @@
       "lines": 38
     },
     {
+      "path": "import.yaml",
+      "size": 5042,
+      "sha1": "f33c886acaa17c1a5264e138ece0b16e36b7077c",
+      "lines": 133
+    },
+    {
       "path": "jest.config.js",
       "size": 110,
       "sha1": "76dc69b133e5aeea755101ca6981ba601654d653",
@@ -20,15 +26,15 @@
     },
     {
       "path": "package.json",
-      "size": 856,
-      "sha1": "7a748ec86a16bd77084301a1f098acf472a05cdd",
-      "lines": 38
+      "size": 885,
+      "sha1": "c1ddc1d052815bba1c270825bdbfbc8d7400018e",
+      "lines": 39
     },
     {
       "path": "bin/cli.js",
-      "size": 3379,
-      "sha1": "842fd69fd8d7d2abe4aaa74349782bad226c322b",
-      "lines": 132
+      "size": 4187,
+      "sha1": "1d48633f718121c1b18edf275a3843fc4c7bedc9",
+      "lines": 154
     },
     {
       "path": "schemas/idea.json",
@@ -53,6 +59,18 @@
       "size": 3750,
       "sha1": "efcb794a9990eda95854ea232f73e84e461eb866",
       "lines": 132
+    },
+    {
+      "path": "src/commands/bulk-explain.js",
+      "size": 3494,
+      "sha1": "fe70fae0e89e02ab01bd7076d026899252cdff5f",
+      "lines": 111
+    },
+    {
+      "path": "src/commands/bulk-import.js",
+      "size": 7048,
+      "sha1": "a5cff900b720ecfcf0fe89fea07cf7ec444c5718",
+      "lines": 215
     },
     {
       "path": "src/commands/canonicalize.js",
@@ -104,9 +122,9 @@
     },
     {
       "path": "src/commands/validate.js",
-      "size": 1549,
-      "sha1": "d1ed8eadfb5722a7e43cfeb0b91bde6fac010b67",
-      "lines": 52
+      "size": 1823,
+      "sha1": "ac77d6752fde56508ab5f078bd09f7bd70442559",
+      "lines": 60
     },
     {
       "path": "src/utils/findProjectRoot.js",
@@ -131,8 +149,14 @@
       "size": 216,
       "sha1": "1075c4309a59650508134baf9d8f0dc738a3ba49",
       "lines": 9
+    },
+    {
+      "path": "tests/schemas/date-time-format.test.js",
+      "size": 1630,
+      "sha1": "16f6d02de5bca6aed52e9843f5b0998bd9318652",
+      "lines": 48
     }
   ],
-  "totalFiles": 22,
-  "timestamp": "2025-10-26T18:45:45.416Z"
+  "totalFiles": 26,
+  "timestamp": "2025-10-26T21:57:40.041Z"
 }

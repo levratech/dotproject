@@ -1,0 +1,45 @@
+{
+  "epics": [
+    {
+      "id": "EP0001",
+      "title": "Contracts Integration"
+    },
+    {
+      "id": "EP0002",
+      "title": "Project Visibility in Atlas"
+    }
+  ],
+  "stories": [
+    {
+      "epic": "EP0001",
+      "id": "ST0001",
+      "status": "in_progress",
+      "title": "Add contracts to story schema and strict validation"
+    },
+    {
+      "epic": "EP0001",
+      "id": "ST0002",
+      "status": "in_progress",
+      "title": "Generate contracts/index.json from YAML"
+    },
+    {
+      "epic": "EP0001",
+      "id": "ST0003",
+      "status": "in_progress",
+      "title": "Jest tests for contracts validation and indexing"
+    },
+    {
+      "epic": "EP0001",
+      "id": "ST0004",
+      "status": "in_progress",
+      "title": "Document agent use of contracts in AGENTS.md"
+    },
+    {
+      "epic": "EP0002",
+      "id": "ST0005",
+      "status": "in_progress",
+      "title": "Append project + contracts summary to atlas"
+    }
+  ],
+  "timestamp": "2025-10-26T21:57:04.530Z"
+}
